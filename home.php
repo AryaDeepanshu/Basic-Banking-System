@@ -134,7 +134,8 @@
                     </thead>
                     <tbody>
                         <?php
-                        $sql_get_trans = "SELECT * FROM `transaction`";
+                        $sender = $_SESSION['user_id'];
+                        $sql_get_trans = "SELECT * FROM `transaction` WHERE (sender='$sender' OR recipient='$sender')";
                         $result = mysqli_query($conn, $sql_get_trans);
                         while($row = mysqli_fetch_assoc($result)){
                             $sender = get_username($row['sender']);
