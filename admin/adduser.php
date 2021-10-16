@@ -25,6 +25,10 @@
                 <input type="email" name="email" class="form-control" id="exampleInputEmail1">
             </div>
             <div class="mb-3">
+                <label for="exampleInputEmail1" class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" id="exampleInputEmail1">
+            </div>
+            <div class="mb-3">
                 <label for="exampleInputEmail1" class="form-label">Balance</label>
                 <input type="number" name="balance" class="form-control" id="exampleInputEmail1">
             </div>
@@ -35,11 +39,13 @@
                 $user_name = mysqli_escape_string($conn, $_POST['name']);
                 $user_email = mysqli_escape_string($conn, $_POST['email']);
                 $user_balance = mysqli_escape_string($conn, $_POST['balance']);
+                $user_password = mysqli_real_escape_string($conn, $_POST['password']);
                 if(empty($user_name) OR empty($user_email) OR empty($user_balance)){
                     header("Location:adduser.php?message=Empty+fields");
                     exit();
                 }else{
-                    $sql = "INSERT INTO user (user_photo, user_name, user_email, user_balance) VALUES('avatar', '$user_name', '$user_email', '$user_balance');";
+                    $hash = password_hash($user_password, PASSWORD_DEFAULT);
+                    $sql = "INSERT INTO user (user_photo, user_name, user_email, user_balance, user_password) VALUES('avatar', '$user_name', '$user_email', '$user_balance', '$hash');";
                     if($conn->query($sql) === TRUE){
                         header("Location: adduser.php?message=useradded");
                         exit();
@@ -48,8 +54,6 @@
                         
                     }
                 }
-            }else{
-                echo "FUCK!";
             }
         ?>
     </main>

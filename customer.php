@@ -34,7 +34,7 @@
     <?php
         if(isset($_POST['post'])){
             $email = mysqli_escape_string($conn, $_POST['email']);
-            $password = mysqli_escape_string($conn, $_POST['password']);
+            $password = mysqli_real_escape_string($conn, $_POST['password']);
             if(empty($email) OR empty($password)){
                 header("Location:customer.php?message=empty+fields");
                 exit();
@@ -46,16 +46,17 @@
                     exit();
                 }else{
                     while($row = mysqli_fetch_assoc($result)){
-                        if(!($row['user_password'] === $password)){
-                            header("Location:customer.php?message=login+failed");
-                            exit();
-                        }else{
+                        if(!password_verify($password, $row['user_password'])){
+                            header("Location:customer.php?message=Login+Error");
+                            exit(); 
+                        }elseif(password_verify($password, $row['user_password'])){
                             session_start();
                             $_SESSION['user_name'] = $row['user_name'];
                             $_SESSION['user_balance'] = $row['user_balance'];
                             $_SESSION['user_email'] = $row['user_email'];
                             $_SESSION['user_id'] = $row['user_id'];
                             header("Location: home.php");
+                            exit();
                         }
                     }
                 }
