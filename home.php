@@ -1,6 +1,8 @@
 <?php
     include_once("include/connection.php");
+    include_once("include/function.php");
     session_start();
+    update_balance($_SESSION['user_id']);
 ?>
 <html>
 <head>
@@ -40,7 +42,7 @@
                                 $result = mysqli_query($conn, $sql);
                                 $count = 1;
                                 while($row = mysqli_fetch_assoc($result)){
-                                    echo "<option value='" . $count . "'>" . $row['user_email'] .'| '.$row['user_name']."</option>";
+                                    echo "<option value='" . $count .'|'.$row['user_id']. "'>" . $row['user_email'] .'| '.$row['user_name']."</option>";
                                     $count += 1;
                                 }
                             ?>
@@ -69,17 +71,46 @@
                             if(isset($_SESSION['user_id'])){
                                 $sender = $_SESSION['user_id'];
                                 $recipient = mysqli_escape_string($conn, $_POST['recipient']);
-                                $recipient_email = array_shift(explode('|', $recipient));
+                                $recipient_id = explode('|', $recipient)[1];
+                                
                                 $amount = mysqli_escape_string($conn, $_POST['amount']);
                                 $comment = mysqli_escape_string($conn, $_POST['comment']);
                                 if(empty($sender) OR empty($recipient) OR empty($amount)){
                                     header("Location: home.php?message=empty+fields");
                                     exit();
                                 }else{
-                                    $sql = "SELECT user_id WHERE (user_email = '$recipient_email')";
-                                    if(!mysqli_query($conn, $sql)){
-                                        
-                                    } 
+                                    if($amount > $_SESSION['user_balance']){
+                                        header("Location: home.php?message=insufficient+amount");
+                                        exit();
+                                         
+                                    }else{
+                                        $sql = "SELECT * FROM user WHERE (user_id = '$recipient_id')";
+                                        $result = mysqli_query($conn, $sql);
+                                        if(mysqli_num_rows($result) <= 0){
+                                            header("Location: home.php?message=recipient+not+found");
+                                            exit();
+                                        }else{
+                                            while($row = mysqli_fetch_assoc($result)){
+                                                $recipient_old_balance = $row['user_balance'];
+                                            }
+                                            $sender_balance = $_SESSION['user_balance'] - $amount;
+                                            $recipient_balance = $recipient_old_balance + $amount;
+                                            $sql_sender = "UPDATE user SET user_balance='$sender_balance' WHERE user_id='$sender'";
+                                            $sql_recipient = "UPDATE user SET user_balance='$recipient_balance' WHERE user_id='$recipient_id'";
+                                            if(mysqli_query($conn, $sql_sender) AND mysqli_query($conn, $sql_recipient)){
+                                                header("Location: home.php?message=transfered");
+                                                update_balance($_SESSION['user_id']);
+                                                $sql_trans = "INSERT INTO `transaction` (sender, recipient, amount, comment) VALUES ('$sender', '$recipient_id', '$amount', '$comment')";
+                                                mysqli_query($conn, $sql_trans);
+                                                exit();
+                                            }else{
+                                                header("Location: home.php?message=transfered+failed");
+                                                exit();
+                                            }
+
+                                        }
+                                    }
+                                    
                                 }
                             }
                         }
@@ -95,18 +126,23 @@
                     <thead>
                         <tr>
                         <th scope="col">#</th>
-                        <th scope="col">First</th>
-                        <th scope="col">Last</th>
-                        <th scope="col">Handle</th>
+                        <th scope="col">Sender</th>
+                        <th scope="col">Recipient</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Comment</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                        <th scope="row">1</th>
-                        <td>Mark</td>
-                        <td>Otto</td>
-                        <td>@mdo</td>
-                        </tr>
+                        <?php
+                        $sql_get_trans = "SELECT * FROM `transaction`";
+                        $result = mysqli_query($conn, $sql_get_trans);
+                        while($row = mysqli_fetch_assoc($result)){
+                            $sender = get_username($row['sender']);
+                            $recipient = get_username($row['recipient']);
+                            echo "<tr><th scope='row'>".$row['transc_id']."</th><td>".$sender."</td><td>".$recipient."</td><td>".$row['amount']."</td><td>".$row['comment']."</td></tr>";
+                        }
+                        
+                        ?>
                     </tbody>
                 </table>
                 </div>
