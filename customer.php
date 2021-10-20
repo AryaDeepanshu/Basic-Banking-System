@@ -1,6 +1,9 @@
 <?php
     include_once("include/connection.php");
-  
+    session_start();
+    if(isset($_SESSION['user_id'])){
+        header("Location:home.php");
+    }else{
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,7 +19,7 @@
     
     <main class="form-signin">
     <form method="POST">
-        <img class="mb-4" src="/docs/5.1/assets/brand/bootstrap-logo.svg" alt="" width="72" height="57">
+        
         <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
 
         <div class="form-floating">
@@ -33,7 +36,7 @@
     </main>
     <?php
         if(isset($_POST['post'])){
-            $email = mysqli_escape_string($conn, $_POST['email']);
+            $email = mysqli_real_escape_string($conn, $_POST['email']);
             $password = mysqli_real_escape_string($conn, $_POST['password']);
             if(empty($email) OR empty($password)){
                 header("Location:customer.php?message=empty+fields");
@@ -62,6 +65,7 @@
                 }
             }
         }
+    }
     ?>
     
 </body>

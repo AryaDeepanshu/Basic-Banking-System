@@ -23,7 +23,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 class="text-right">Balance</h4>
                 </div>
-                <h1><?php echo $_SESSION['user_balance'];?></h1>
+                <h1>&#x20b9 <?php echo $_SESSION['user_balance'];?></h1>
                 <div class="mt-5 text-center"><button class="btn btn-primary profile-button" id="transfer" type="button">Transfer Money</button></div>
                 <div id="transfer-form" style ="display:none" class="mt-5 text-center">
                     <form method="POST">
@@ -56,8 +56,8 @@
 
 
                             <div class="input-group mb-3">
-                            <span name="comment" class="input-group-text">Comments</span>
-                            <textarea class="form-control" aria-label="With textarea"></textarea>
+                            <span class="input-group-text">Comments</span>
+                            <textarea name="comment" class="form-control" aria-label="With textarea"></textarea>
 
                             <div class="input-group mb-3">
                             <div class="mt-5 text-center">
@@ -70,11 +70,10 @@
                         if(isset($_POST['send'])){
                             if(isset($_SESSION['user_id'])){
                                 $sender = $_SESSION['user_id'];
-                                $recipient = mysqli_escape_string($conn, $_POST['recipient']);
+                                $recipient = mysqli_real_escape_string($conn, $_POST['recipient']);
                                 $recipient_id = explode('|', $recipient)[1];
-                                
-                                $amount = mysqli_escape_string($conn, $_POST['amount']);
-                                $comment = mysqli_escape_string($conn, $_POST['comment']);
+                                $amount = mysqli_real_escape_string($conn, $_POST['amount']);
+                                $comment = mysqli_real_escape_string($conn, $_POST['comment']);
                                 if(empty($sender) OR empty($recipient) OR empty($amount)){
                                     header("Location: home.php?message=empty+fields");
                                     exit();
